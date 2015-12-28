@@ -62,6 +62,7 @@ local.properties
 
 # java executable
 .class
+
 # Java annotation processor (APT)
 .factorypath
 
