@@ -1,1 +1,1 @@
-echo # JavaMultiprogramming
+# JavaMultiprogramming

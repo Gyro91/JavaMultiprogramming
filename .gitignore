@@ -61,7 +61,7 @@ local.properties
 .classpath
 
 # java executable
-.class
+*.class
 
 # Java annotation processor (APT)
 .factorypath
@@ -72,10 +72,9 @@ local.properties
 # sbteclipse plugin
 .target
 
-.*~
+
+*.*~
 # TeXlipse plugin
 .texlipse
 
 .deps/*
-=======
->>>>>>> 06989bb3b051598005b18bd231993948d1e1c4b6
