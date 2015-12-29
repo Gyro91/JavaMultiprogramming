@@ -19,11 +19,12 @@ class Worker extends Thread {
 
 public class TestFairSem {
 	public static Worker[] workers;
+	private static Scanner scan;
 	
 	public static void main(String[] args) {
 		long tid1, tid2;
 		boolean error = false;
-		Scanner scan= new Scanner(System.in);
+		scan = new Scanner(System.in);
 		int ntasks, semvalue;
 		
 		// Take input number of Tasks for the Test
