@@ -46,7 +46,8 @@ public class FairSem {
 				}
 			next = true;
 
-			if (semvalue > 1) {
+			if (semvalue > 1 && !fq.empty()) {
+				
 				/* If there are n blocked threads and m threads did V(),
 				 * the m of n threads must be awakened here,
 				 * otherwise they are blocked even if the semvalue != 0
