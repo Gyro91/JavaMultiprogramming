@@ -2,23 +2,26 @@ package FairSem;
 import Fifo_Queue.*;
 
 public class FairSem {
+	
 	private int semvalue; 				// Value of the Semaphore
-	private boolean next = true;	 	// If true thread selected, has woken up
-	private long next_thread;  			// Id of the next thread that must go for first 
-										// among blocked threads
-	private Fifo_Queue fq;   			// Queue of blocked threads
 	
-	private boolean test_mode;
-	public Fifo_Queue entry_P;
-	public Fifo_Queue exit_P;
+	private Fifo_Queue blocked;   		// Queue of blocked threads
+	private Fifo_Queue awakened;		// Queue of awakened threads
 	
-	public FairSem(int value, int dim, boolean val) {
+	private boolean test_mode;		// If equal 1, FairSem is in test mode
+	
+	public Fifo_Queue entry_P;		// Queue for testing
+	public Fifo_Queue exit_P;		// Queue for testing
+	
+	public FairSem(int value, int Nthreads, boolean val) {
 		semvalue = value;
-		fq = new Fifo_Queue(dim);
+		blocked = new Fifo_Queue(Nthreads);
+		awakened = new Fifo_Queue(Nthreads - value);
 		test_mode = val;
+		
 		if(test_mode) {
-			entry_P = new Fifo_Queue(dim);
-			exit_P = new Fifo_Queue(dim);
+			entry_P = new Fifo_Queue(Nthreads);
+			exit_P = new Fifo_Queue(Nthreads);
 		}
 	}
 	
@@ -29,49 +32,46 @@ public class FairSem {
 			entry_P.insert(my_tid);
 	
 		if (semvalue == 0) {
+			
 			// If sem is red, blocking
-			fq.insert(my_tid);
+			blocked.insert(my_tid);
 
 			try {
 				wait();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
-			while (next_thread != my_tid || semvalue == 0)
+			// Only the selected thread must go forward 
+			// in the critical section
+			while (awakened.first() != my_tid)
 				try {
 					wait();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}
-			next = true;
-
-			if (semvalue > 1 && !fq.empty()) {
-				
-				/* If there are n blocked threads and m threads did V(),
-				 * the m of n threads must be awakened here,
-				 * otherwise they are blocked even if the semvalue != 0
-				 */
-				next_thread = fq.remove();
-				notifyAll();
 			}
-				
+			awakened.remove();
+			/* If the semaphore is initialized with a value = n (>1)
+			 * and in the situation where there are n threads in the critical section
+			 * and other threads are blocked. If there are some V (greater than 1) 
+			 * of the the n threads, if the threads that  
+			 * */
+			if(!awakened.empty())
+				notifyAll();
 		}
-		// Decreasing semaphore value
-		semvalue--;
+		else
+			semvalue--;
 		
 		if (test_mode)
 			exit_P.insert(my_tid);
 	}
 	
-	public synchronized void V() {
-		long my_tid = Thread.currentThread().getId();
-		semvalue++;		
-		if(!fq.empty() && next)	{
-			next_thread = fq.remove();
-			next = false;
+	public synchronized void V() {		
+				
+		if(!blocked.empty())	{
+			awakened.insert(blocked.remove());
 			notifyAll();
 		}
-		
+		else
+			semvalue++;
 	}
 }

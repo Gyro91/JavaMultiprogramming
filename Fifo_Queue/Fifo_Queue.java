@@ -35,4 +35,11 @@ public class Fifo_Queue {
 	public synchronized boolean empty() {
 		return (count == 0);
 	}
+	
+	public synchronized long first() {
+		if (count>0)
+			return threads[front];
+		else
+			return -2;
+	}
 }
