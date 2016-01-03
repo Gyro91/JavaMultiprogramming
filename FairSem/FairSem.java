@@ -50,10 +50,13 @@ public class FairSem {
 					e.printStackTrace();
 			}
 			awakened.remove();
+			
 			/* If the semaphore is initialized with a value = n (>1)
 			 * and in the situation where there are n threads in the critical section
 			 * and other threads are blocked. If there are some V (greater than 1) 
-			 * of the the n threads, if the threads that  
+			 * of the the n threads and the threads get the lock before the selected thread
+			 * they return in the wait set.(i.e. some V have no effects). It's needed a notifyAll
+			 * to avoid this situation.
 			 * */
 			if(!awakened.empty())
 				notifyAll();

@@ -5,14 +5,11 @@ import FairSem.*;
 public class SynchPort <T> {
 	private Message <T> data;
 	private FairSem empty, full, waitR;
-	
-	/* Nsenders are the number of the senders that can use the port */
-	
-	public SynchPort(int Nsenders) {
 		
-		empty = new FairSem(1, 1, false);
-		waitR = new FairSem(0, 1, false);
-		full = new FairSem(0, Nsenders, false);
+	public SynchPort(int Nsenders) {		
+		empty = new FairSem(1, Nsenders, false);
+		waitR = new FairSem(0, Nsenders, false);
+		full = new FairSem(0, 1, false);
 	}
 	
 	public void send(Message<T> m) {
