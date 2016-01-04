@@ -48,10 +48,11 @@ class Mailbox extends Thread {
 								
 								service = ready.receive();	
 								m = listenProducers.receive();
-								
+	
+								mq.insert(m);
 								/* After inserting we can serve the Consumer */
 								
-								listenConsumer.send(m);
+								listenConsumer.send(mq.extract());
 								countExtractions++;
 								break;
 						default:
@@ -93,18 +94,18 @@ class Mailbox extends Thread {
 
 class Consumer extends Thread {
 	public void run() {
-		Message <String> who = new Message<String>();
-		who.data = new String("Remove");
+		Message <String> service_request = new Message<String>();
+		service_request.data = new String("Remove");
+		service_request.tid = Thread.currentThread().getId();
 		Message <Integer> m = new Message<Integer>();
 		
 		for(int i=0; i<50; i++) {
 			
 			// Request of Remove
-			TestPortWithMailbox.server.ready.send(who);
+			TestPortWithMailbox.server.ready.send(service_request);
 			// Taking Data
 			m = TestPortWithMailbox.server.listenConsumer.receive();
-			
-	
+				
 			System.out.println("Consumer received " + m.data + " from " +
 					"Thread[" + m.tid + "]");
 
@@ -116,6 +117,7 @@ class Producer extends Thread {
 	public void run() {
 		Message <String> service_request = new Message<String>();
 		service_request.data = new String("Insert");
+		service_request.tid = Thread.currentThread().getId();
 		Message <Integer> m = new Message<Integer>();
 		
 		for(int i=0; i<5; i++) {
@@ -124,15 +126,12 @@ class Producer extends Thread {
 			m.data = i;
 			m.tid = Thread.currentThread().getId();
 			
-			// Request of Insert
+			// Request of Inserting
 			TestPortWithMailbox.server.ready.send(service_request);
 		
 			// Sending Data
-			TestPortWithMailbox.server.listenProducers.send(m);
-			
+			TestPortWithMailbox.server.listenProducers.send(m);			
 
-			System.out.println("Thread[" + m.tid + "] " +
-					"sended " + m.data);
 
 		}
 	}

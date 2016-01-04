@@ -24,7 +24,11 @@ public class SynchPort <T> {
 		Message <T> m = new Message <T>();
 		
 		full.P();
-		m = data;
+		
+		m.data = data.data;
+		m.tid  = data.tid;
+		m.response = data.response;
+		
 		empty.V();		
 		waitR.V();
 		
