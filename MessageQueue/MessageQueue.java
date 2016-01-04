@@ -11,8 +11,11 @@ public class MessageQueue {
 	private int rear, front, count;
 	public MessageQueue() {
 		buffer = new Message_T[4];
-		for(int i=0; i<4; i++)
+		for(int i=0; i<4; i++) {
 			buffer[i] = new Message_T();
+			buffer[i].data = 0;
+			buffer[i].tid = 0;
+		}
 		rear = front = count = 0;
 	}
 	
@@ -30,7 +33,7 @@ public class MessageQueue {
 		m.tid = buffer[front].tid;
 		front = (front + 1) % 4;
 		count--;		
-		
+
 		return m;
 		
 	}

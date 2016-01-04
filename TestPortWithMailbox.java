@@ -104,10 +104,10 @@ class Consumer extends Thread {
 			// Taking Data
 			m = TestPortWithMailbox.server.listenConsumer.receive();
 			
-			TestPortWithMailbox.console_mux.P();
+	
 			System.out.println("Consumer received " + m.data + " from " +
 					"Thread[" + m.tid + "]");
-			TestPortWithMailbox.console_mux.V();
+
 		}
 	}
 }
@@ -118,7 +118,7 @@ class Producer extends Thread {
 		service_request.data = new String("Insert");
 		Message <Integer> m = new Message<Integer>();
 		
-		for(int i=1; i<=5; i++) {
+		for(int i=0; i<5; i++) {
 			
 			// Elaborating Data
 			m.data = i;
@@ -130,10 +130,10 @@ class Producer extends Thread {
 			// Sending Data
 			TestPortWithMailbox.server.listenProducers.send(m);
 			
-			TestPortWithMailbox.console_mux.P();
+
 			System.out.println("Thread[" + m.tid + "] " +
 					"sended " + m.data);
-			TestPortWithMailbox.console_mux.V();
+
 		}
 	}
 }
