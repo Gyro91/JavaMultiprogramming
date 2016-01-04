@@ -1,5 +1,5 @@
 #!/bin/sh
-for X in $(seq 1000)
+for X in $(seq 100)
 do 
     java TestPortWithMailbox
 done 
