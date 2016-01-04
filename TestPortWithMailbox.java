@@ -118,7 +118,7 @@ class Producer extends Thread {
 		service_request.data = new String("Insert");
 		Message <Integer> m = new Message<Integer>();
 		
-		for(int i=0; i<5; i++) {
+		for(int i=1; i<=5; i++) {
 			
 			// Elaborating Data
 			m.data = i;
@@ -144,6 +144,7 @@ public class TestPortWithMailbox {
 	static Producer producers [] = new Producer[10];
 	static Mailbox server = new Mailbox();
 	static FairSem console_mux = new FairSem(1, 11, false); // mutex to protect console video
+
 	public static void main(String[] args) {
 		server.start();
 		consumer.start();

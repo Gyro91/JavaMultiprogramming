@@ -3,7 +3,7 @@ import Message.*;
 
 class Message_T {
 	int data;
-	int tid;
+	long tid;
 }
 
 public class MessageQueue {
@@ -16,23 +16,26 @@ public class MessageQueue {
 		rear = front = count = 0;
 	}
 	
-	public synchronized void insert(Message<Integer> m) {
-		buffer[rear].data = m.data;
-		buffer[rear].tid = (int) m.tid;
+	public void insert(Message<Integer> m) {	
+		buffer[rear].data = (int) m.data;
+		buffer[rear].tid =  (long) m.tid;
 		rear = (rear + 1) % 4;
-		count++;
+		count++;	
 	}
 	
-	public synchronized Message<Integer> extract() {
+	public Message<Integer> extract() {
 		Message<Integer> m = new Message<Integer>();
-		m.data = (Integer) buffer[front].data;
+				
+		m.data = buffer[front].data;
 		m.tid = buffer[front].tid;
 		front = (front + 1) % 4;
-		count--;
+		count--;		
+		
 		return m;
+		
 	}
 	
-	public synchronized int how_many() {
+	public int how_many() {
 		return count;
 	}
 }
