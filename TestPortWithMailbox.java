@@ -6,15 +6,13 @@ import MessageQueue.*;
 class Mailbox extends Thread {
 	private int countExtractions, pendingProducers;
 	private MessageQueue mq;
-	public SynchPort <Integer> listenProducers;	// For the communication with Producers
-	public SynchPort <Integer> listenConsumer;	// For the communication with the Consumer
-	public SynchPort <String> ready;	// Port for waiting a service request
+	public static SynchPort <Integer> listenProducers;	// For the communication with Producers
+	public static SynchPort <String> ready;	// Port for waiting a service request
 
 	public Mailbox() {
 		countExtractions = 0;
 		pendingProducers = 0;
-		listenProducers = new SynchPort<Integer>(10);
-		listenConsumer = new SynchPort<Integer>(1);
+		listenProducers = new SynchPort<Integer>(10);	
 		ready = new SynchPort<String>(11);
 		mq = new MessageQueue();
 	}
@@ -52,11 +50,11 @@ class Mailbox extends Thread {
 								mq.insert(m);
 								/* After inserting we can serve the Consumer */
 								
-								listenConsumer.send(mq.extract());
+								Consumer.listenConsumer.send(mq.extract());
 								countExtractions++;
 								break;
 						default:
-								listenConsumer.send(mq.extract());
+								Consumer.listenConsumer.send(mq.extract());
 								countExtractions++;
 								break;
 					}
@@ -76,7 +74,7 @@ class Mailbox extends Thread {
 							}
 							
 							if (service.data.equals("Remove")) {							
-								listenConsumer.send(mq.extract());
+								Consumer.listenConsumer.send(mq.extract());
 								countExtractions++;
 							}
 							break;
@@ -93,6 +91,7 @@ class Mailbox extends Thread {
 }
 
 class Consumer extends Thread {
+    public static SynchPort<Integer> listenConsumer = new SynchPort<Integer>(1);
 	public void run() {
 		Message <String> service_request = new Message<String>();
 		service_request.data = new String("Remove");
@@ -102,9 +101,9 @@ class Consumer extends Thread {
 		for(int i=0; i<50; i++) {
 			
 			// Request of Remove
-			TestPortWithMailbox.server.ready.send(service_request);
+			Mailbox.ready.send(service_request);
 			// Taking Data
-			m = TestPortWithMailbox.server.listenConsumer.receive();
+			m = listenConsumer.receive();
 				
 			System.out.println("Consumer received " + m.data + " from " +
 					"Thread[" + m.tid + "]");
@@ -127,10 +126,10 @@ class Producer extends Thread {
 			m.tid = Thread.currentThread().getId();
 			
 			// Request of Inserting
-			TestPortWithMailbox.server.ready.send(service_request);
+			Mailbox.ready.send(service_request);
 		
 			// Sending Data
-			TestPortWithMailbox.server.listenProducers.send(m);			
+			Mailbox.listenProducers.send(m);			
 
 
 		}

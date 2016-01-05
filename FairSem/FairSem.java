@@ -77,4 +77,11 @@ public class FairSem {
 		else
 			semvalue++;
 	}
+	
+	public synchronized boolean state() {
+		if(semvalue == 0)
+			return true;
+		else
+			return false;
+	}
 }

@@ -106,7 +106,6 @@ public class TestSynchPort {
 	public static void main(String[] args) {
 		producer.start();
 		consumer.start();
-
 	}
 
 }

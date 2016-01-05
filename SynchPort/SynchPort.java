@@ -35,4 +35,8 @@ public class SynchPort <T> {
 		return m;
 	}
 	
+	public boolean statePort() {
+		return empty.state();
+	}
+	
 }
