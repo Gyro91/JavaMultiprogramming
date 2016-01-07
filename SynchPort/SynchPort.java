@@ -28,6 +28,7 @@ public class SynchPort <T> {
 		m.data = data.data;
 		m.tid  = data.tid;
 		m.response = data.response;
+		m.priority = data.priority;
 		
 		empty.V();		
 		waitR.V();

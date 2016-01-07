@@ -3,17 +3,17 @@ import FairSem.FairSem;
 import Message.*;
 import MessageQueue.*;
  
-class Mailbox extends Thread {
+class MailboxA1 extends Thread {
 	private int countExtractions, pendingProducers;
 	private MessageQueue mq;
 	public static SynchPort <Integer> listenProducers;	// For the communication with Producers
 	public static SynchPort <String> ready;	// Port for waiting a service request
 
-	public Mailbox() {
+	public MailboxA1(int Nproducers) {
 		countExtractions = 0;
 		pendingProducers = 0;
-		listenProducers = new SynchPort<Integer>(10);	
-		ready = new SynchPort<String>(11);
+		listenProducers = new SynchPort<Integer>(Nproducers);	
+		ready = new SynchPort<String>(Nproducers + 1);
 		mq = new MessageQueue();
 	}
 	
@@ -21,7 +21,7 @@ class Mailbox extends Thread {
 		Message <String> service = new Message<String>();
 		Message <Integer> m = new Message<Integer>();
 		
-		while(countExtractions != 50) {
+		while (countExtractions != 50) {
 
 			if (pendingProducers > 0 && mq.how_many() < 4) {
 				// Serving pending requests is more important!
@@ -50,11 +50,11 @@ class Mailbox extends Thread {
 								mq.insert(m);
 								/* After inserting we can serve the Consumer */
 								
-								Consumer.listenConsumer.send(mq.extract());
+								ConsumerA1.listenConsumer.send(mq.extract());
 								countExtractions++;
 								break;
 						default:
-								Consumer.listenConsumer.send(mq.extract());
+								ConsumerA1.listenConsumer.send(mq.extract());
 								countExtractions++;
 								break;
 					}
@@ -74,7 +74,7 @@ class Mailbox extends Thread {
 							}
 							
 							if (service.data.equals("Remove")) {							
-								Consumer.listenConsumer.send(mq.extract());
+								ConsumerA1.listenConsumer.send(mq.extract());
 								countExtractions++;
 							}
 							break;
@@ -90,7 +90,7 @@ class Mailbox extends Thread {
 	}
 }
 
-class Consumer extends Thread {
+class ConsumerA1 extends Thread {
     public static SynchPort<Integer> listenConsumer = new SynchPort<Integer>(1);
 	public void run() {
 		Message <String> service_request = new Message<String>();
@@ -101,7 +101,7 @@ class Consumer extends Thread {
 		for(int i=0; i<50; i++) {
 			
 			// Request of Remove
-			Mailbox.ready.send(service_request);
+			MailboxA1.ready.send(service_request);
 			// Taking Data
 			m = listenConsumer.receive();
 				
@@ -112,7 +112,7 @@ class Consumer extends Thread {
 	}
 }
 
-class Producer extends Thread {
+class ProducerA1 extends Thread {
 	public void run() {
 		Message <String> service_request = new Message<String>();
 		service_request.data = new String("Insert");
@@ -126,10 +126,10 @@ class Producer extends Thread {
 			m.tid = Thread.currentThread().getId();
 			
 			// Request of Inserting
-			Mailbox.ready.send(service_request);
+			MailboxA1.ready.send(service_request);
 		
 			// Sending Data
-			Mailbox.listenProducers.send(m);			
+			MailboxA1.listenProducers.send(m);			
 
 
 		}
@@ -137,21 +137,20 @@ class Producer extends Thread {
 }
 
 
-public class TestPortWithMailbox {
-	static Consumer consumer = new Consumer();
-	static Producer producers [] = new Producer[10];
-	static Mailbox server = new Mailbox();
+public class TestPortWithMailboxA {
+	static ConsumerA1 consumer = new ConsumerA1();
+	static ProducerA1 producers [] = new ProducerA1[10];
+	static MailboxA1 server = new MailboxA1(10);
 	static FairSem console_mux = new FairSem(1, 11, false); // mutex to protect console video
 
 	public static void main(String[] args) {
 		server.start();
 		consumer.start();
 		for(int i=0; i<10; i++) {
-			producers[i] = new Producer();
+			producers[i] = new ProducerA1();
 			producers[i].start();
 		}
 
 	}
 
 }
-

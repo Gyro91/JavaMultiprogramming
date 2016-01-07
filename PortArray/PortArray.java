@@ -24,11 +24,10 @@ public class PortArray<T> {
 		if (p < 0 || p >= dim) {
 			System.out.println("Error: Port not found");
 			System.exit(1);
-		}
-		
-		PortArray.get(p).send(m);
+		}		
 		
 		wait.V();
+		PortArray.get(p).send(m);
 	}
 
 	public int checkPorts(int v[], int n) {
