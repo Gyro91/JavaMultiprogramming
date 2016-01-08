@@ -35,7 +35,8 @@ class Sender_T extends Thread {
 		m.data = 3;
 	
 		Receiver_T.pa.send(m, 2);
-		System.out.println("Sender: Forwarded" + m.data);
+		
+		System.out.println("Sender: Forwarded " + m.data);
 	}
 }
 

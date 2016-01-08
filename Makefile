@@ -13,7 +13,8 @@ Part3:
 	$(CC) $(FLAGS) TestPortArray.java
 
 Part4:
-	$(CC) $(FLAGS) TestPortWithMailboxA.java TestPortWithMailboxB.java
+	$(CC) $(FLAGS) TestPortWithMailboxA.java 
+	$(CC) $(FLAGS) TestPortWithMailboxB.java
 
 all: Part1 Part2 Part3 Part4
 

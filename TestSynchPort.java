@@ -86,6 +86,7 @@ class Receiver extends Thread {
 		System.out.println("Receiver: Received data...data = " + m.data);
 		
 		TestSynchPort.console_mux.V();
+		
 		// Elaborating data && sending the answer
 		
 		m.data++;

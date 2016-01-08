@@ -25,9 +25,11 @@ public class FairSem {
 		}
 	}
 	
-	public synchronized void P() {
+	public void P() {
+		
 		long my_tid = Thread.currentThread().getId();
 		
+		synchronized(this) {
 		if (test_mode)
 			entry_P.insert(my_tid);
 	
@@ -58,7 +60,8 @@ public class FairSem {
 			 * they return in the wait set.(i.e. some V have no effects). It's needed a notifyAll
 			 * to avoid this situation.
 			 * */
-			if(!awakened.empty())
+			
+			if (!awakened.empty())
 				notifyAll();
 		}
 		else
@@ -66,6 +69,7 @@ public class FairSem {
 		
 		if (test_mode)
 			exit_P.insert(my_tid);
+		}
 	}
 	
 	public synchronized void V() {		
@@ -79,7 +83,7 @@ public class FairSem {
 	}
 	
 	public synchronized boolean state() {
-		if(semvalue == 0)
+		if (semvalue == 1)
 			return true;
 		else
 			return false;

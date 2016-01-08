@@ -4,17 +4,20 @@ import java.util.*;
 import FairSem.*;
 import Message.*;
 
+
 public class PortArray<T> {
 	List <SynchPort <T>> PortArray;
-	FairSem wait;
+	FIFO_Queue sem_available; // FIFO queue of the semaphores available
+	FairSem wait, mutex; 
 	int dim;
 	
 	public PortArray(int n, int Nsenders) {
 		PortArray = new ArrayList<SynchPort<T>>();	
 		wait = new FairSem(0, n, false);
-		
+		sem_available = new FIFO_Queue(n);
+
 		dim = n;		
-		for(int i=0; i<n; i++) {
+		for (int i=0; i<n; i++) {
 			SynchPort<T> sp = new SynchPort<T>(Nsenders);
 			PortArray.add(sp);
 		}
@@ -31,15 +34,18 @@ public class PortArray<T> {
 	}
 
 	public int checkPorts(int v[], int n) {
-		boolean end = false;
 		int i = 0, index = -1;
 		
-		while (i < n && !end) {
-			if (PortArray.get(v[i]).statePort() == true) {
-				end = true;
-				index = v[i];
-			}
+		if(!sem_available.empty()) {
+			index = sem_available.remove();
+		}
+		else {
+			while (i < n) {
+				if (PortArray.get(v[i]).statePort() == true) 
+					sem_available.insert(i);
 			i++;
+			}
+			index = sem_available.remove();
 		}
 		return index;
 	}
@@ -51,12 +57,12 @@ public class PortArray<T> {
 		// An if is sufficient instead a 
 		// while because fairSem is implemented 
 		// with passing the baton technique
+		// it's used a while for getting the correct index after a wake-up
 		
 		while ((index = checkPorts(v, n)) == -1)
 			wait.P();
-		System.out.println("Awakened");
-		m = PortArray.get(v[index]).receive();
-		m.index = index;
+		m = PortArray.get(v[(int) index]).receive();
+		m.index = (int) index;
 		
 		return m;
 	}
