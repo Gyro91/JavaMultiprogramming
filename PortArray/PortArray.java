@@ -4,17 +4,16 @@ import java.util.*;
 import FairSem.*;
 import Message.*;
 
-
 public class PortArray<T> {
 	List <SynchPort <T>> PortArray;
-	FIFO_Queue sem_available; // FIFO queue of the semaphores available
-	FairSem wait, mutex; 
+	PortQueue ports_available; // FIFO queue of the semaphores available
+	FairSem wait; 
 	int dim;
 	
 	public PortArray(int n, int Nsenders) {
 		PortArray = new ArrayList<SynchPort<T>>();	
-		wait = new FairSem(0, n, false);
-		sem_available = new FIFO_Queue(n);
+		wait = new FairSem(0, 1, false);
+		ports_available = new PortQueue(n);
 
 		dim = n;		
 		for (int i=0; i<n; i++) {
@@ -34,35 +33,38 @@ public class PortArray<T> {
 	}
 
 	public int checkPorts(int v[], int n) {
-		int i = 0, index = -1;
+		int i = 0, index = -1, indexQ;
+		boolean first = false;
 		
-		if(!sem_available.empty()) {
-			index = sem_available.remove();
-		}
+		if (ports_available.mode_extraction(v, n) && !ports_available.empty()) 
+			index = ports_available.removeFIFO();	
+		else if ((indexQ = ports_available.find(v,n)) != -1 && !ports_available.empty())
+		          index = ports_available.remove_x(indexQ); 
 		else {
 			while (i < n) {
-				if (PortArray.get(v[i]).statePort() == true) 
-					sem_available.insert(i);
-			i++;
+				if (PortArray.get(v[i]).statePort() == true) {
+					if (!first) {
+						index = i;
+						first = true;
+					}
+					else  ports_available.insert(i);					
+				}					
+				i++;
 			}
-			index = sem_available.remove();
 		}
+		
 		return index;
 	}
 	
 	public Message<T> receive(int v[], int n) {
 		int index;
 		Message<T> m;
-		
-		// An if is sufficient instead a 
-		// while because fairSem is implemented 
-		// with passing the baton technique
-		// it's used a while for getting the correct index after a wake-up
-		
-		while ((index = checkPorts(v, n)) == -1)
+	
+		while ((index = checkPorts(v, n)) == -1) 
 			wait.P();
-		m = PortArray.get(v[(int) index]).receive();
-		m.index = (int) index;
+			
+		m = PortArray.get(v[index]).receive();
+		m.index = index;
 		
 		return m;
 	}

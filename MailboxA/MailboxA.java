@@ -6,16 +6,17 @@ import SynchPort.SynchPort;
 
 public class MailboxA extends Thread {
 	private int countExtractions, pendingProducers;
-	private MessageQueue mq;
-	public static SynchPort <Integer> listenProducers;	// For the communication with Producers
+	private MessageQueue mq; // Buffer
+	public static SynchPort <Integer> dataProducers;	// For the communication with Producers
 	public static SynchPort <Character> ready;	// Port for waiting a service request
-	private static SynchPort <Integer> listenConsumer;
+	private static SynchPort <Integer> dataConsumer; // Port of the Consumer. It's private because this port is declared
+	// public in the receiving process. It's here in order to separate the code of Mailbox from the test application
 	
 	public MailboxA(int Nproducers, int extractions, SynchPort <Integer> cons) {
 		countExtractions = extractions; // number of extractions that must handle the Mailbox
 		pendingProducers = 0;
-		listenConsumer = cons;
-		listenProducers = new SynchPort<Integer>(Nproducers);	
+		dataConsumer = cons;
+		dataProducers = new SynchPort<Integer>(Nproducers);	
 		ready = new SynchPort<Character>(Nproducers + 1);
 		mq = new MessageQueue();
 	}
@@ -32,7 +33,7 @@ public class MailboxA extends Thread {
 					/* Pending requests are served 
 					 * with the respect of the buffer constraint
 					 */	
-					m = listenProducers.receive();
+					m = dataProducers.receive();
 					mq.insert(m);
 					pendingProducers--;
 				}
@@ -49,16 +50,16 @@ public class MailboxA extends Thread {
 								 * waiting for an insert of a Producer */
 								
 								service = ready.receive();	
-								m = listenProducers.receive();
+								m = dataProducers.receive();
 	
 								mq.insert(m);
 								/* After inserting we can serve the Consumer */
 								
-								listenConsumer.send(mq.extract());
+								dataConsumer.send(mq.extract());
 								countExtractions--;
 								break;
 						default:
-								listenConsumer.send(mq.extract());
+								dataConsumer.send(mq.extract());
 								countExtractions--;
 								break;
 					}
@@ -79,13 +80,13 @@ public class MailboxA extends Thread {
 							}
 							
 							if (service.data == 'r') {							
-								listenConsumer.send(mq.extract());
+								dataConsumer.send(mq.extract());
 								countExtractions--;
 							}
 							break;
 						
 						default:
-							m = listenProducers.receive();
+							m = dataProducers.receive();
 						    mq.insert(m);
 						    break;
 					}

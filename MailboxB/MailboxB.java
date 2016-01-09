@@ -1,5 +1,5 @@
 package MailboxB;
-
+import FairSem.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,21 +18,23 @@ public class MailboxB extends Thread {
 	private MessageQueue mq;  // Buffer of 4 integer
 	private List <Blocked> blockedProducers; // List of Blocked producers
 	
-	public static SynchPort <Integer> listenProducers;	// For the communication with Producers
+	public static SynchPort <Integer> dataProducers;	// For the communication with Producers
 	public static SynchPort <Character> ready;	// Port for waiting a service request
-	private static SynchPort <Integer> listenConsumer;
+	private static SynchPort <Integer> dataConsumer;
 	
 	static Message <Character> service = new Message<Character>();
 	static Message <Character> ack = new Message<Character>();
 	static Message <Integer> m = new Message<Integer>();
 	
+	public static FairSem mutex_terminal; // mutex to protect the terminal output. It's used by the Consumer and Mailbox
 	String newLine = System.getProperty("line.separator");
 	
 	public MailboxB(int Nproducers, int extractions, SynchPort <Integer> cons) {
+		mutex_terminal = new FairSem(1, 2, false);
 		countExtractions = extractions; // number of extractions that must handle the Mailbox
-		listenConsumer = cons;
+		dataConsumer = cons;
 		blockedProducers = new ArrayList<Blocked>(Nproducers);
-		listenProducers = new SynchPort<Integer>(Nproducers);	
+		dataProducers = new SynchPort<Integer>(Nproducers);	
 		ready = new SynchPort<Character>(Nproducers + 1);
 		mq = new MessageQueue();
 	}
@@ -61,13 +63,15 @@ public class MailboxB extends Thread {
 					 */	
 					Blocked thread = blockedProducers.remove(maxPriority());
 					
+					mutex_terminal.P();
 					System.out.println("#Awakening Thread[" + thread.tid + "]"
 							+ " with priority " + thread.priority + newLine);
+					mutex_terminal.V();
 					
 					// Awakening
 					thread.goProd.send(ack);
 
-					m = listenProducers.receive();
+					m = dataProducers.receive();
 					mq.insert(m);
 				}
 			}
@@ -83,16 +87,16 @@ public class MailboxB extends Thread {
 								service = ready.receive();
 								service.response.send(ack);
 								
-								m = listenProducers.receive();
+								m = dataProducers.receive();
 	
 								mq.insert(m);
 								/* After inserting we can serve the Consumer */
 								
-								listenConsumer.send(mq.extract());
+								dataConsumer.send(mq.extract());
 								countExtractions--;
 								break;
 						default:
-								listenConsumer.send(mq.extract());
+								dataConsumer.send(mq.extract());
 								countExtractions--;
 								break;
 					}
@@ -105,8 +109,9 @@ public class MailboxB extends Thread {
 							 * of the Consumer. Requests of Producers are saved to
 							 * be served later!
 							 */
-
+							mutex_terminal.P();
 							System.out.println("#Mailbox is full" + newLine);
+							mutex_terminal.V();
 							
 							while (service.data == 'i') {
 								Blocked thread = new Blocked();
@@ -125,16 +130,17 @@ public class MailboxB extends Thread {
 							}
 							
 							if (service.data == 'r') {							
-								listenConsumer.send(mq.extract());
+								dataConsumer.send(mq.extract());
 								countExtractions--;
-								
+								mutex_terminal.P();
 								System.out.println("#Mailbox is not full" + newLine);
+								mutex_terminal.V();
 							}
 							break;
 						
 						default:
 							service.response.send(ack);
-							m = listenProducers.receive();
+							m = dataProducers.receive();
 						    mq.insert(m);
 						    break;
 					}

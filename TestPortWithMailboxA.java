@@ -1,5 +1,4 @@
 import SynchPort.*;
-import FairSem.FairSem;
 import Message.*;
 import MailboxA.*;
 
@@ -43,7 +42,7 @@ class ProducerA extends Thread {
 			MailboxA.ready.send(service_request);
 		
 			// Sending Data
-			MailboxA.listenProducers.send(m);			
+			MailboxA.dataProducers.send(m);			
 
 
 		}

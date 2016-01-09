@@ -1,12 +1,7 @@
 import SynchPort.*;
-import FairSem.FairSem;
 import MailboxB.MailboxB;
 import Message.*;
-import MessageQueue.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import MailboxB.*;
 
 class ConsumerB extends Thread {
     public static SynchPort<Integer> listenConsumer = new SynchPort<Integer>(1);
@@ -22,11 +17,14 @@ class ConsumerB extends Thread {
 			
 			// Request of Remove
 			MailboxB.ready.send(service_request);
+			
 			// Taking Data
 			m = listenConsumer.receive();
 			
+			MailboxB.mutex_terminal.P();
 			System.out.println("#Consumer received " + m.data + " from " +
 					"Thread[" + m.tid + "]" + newLine);
+			MailboxB.mutex_terminal.V();
 		}
 	}
 }
@@ -63,7 +61,7 @@ class ProducerB extends Thread {
 			goProd.receive();
 
 			// Sending Data
-			MailboxB.listenProducers.send(m);			
+			MailboxB.dataProducers.send(m);			
 
 		}
 	}

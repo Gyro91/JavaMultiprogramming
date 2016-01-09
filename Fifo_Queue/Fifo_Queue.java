@@ -3,10 +3,10 @@ package Fifo_Queue;
 // This class implements a circular array
 
 public class Fifo_Queue {
-	public int rear, front;
-	public int dim;
-	public int	count;     	// Number of threads blocked on the Queue
-	public long threads[];  	// Queue of threads, each element contains
+	private int rear, front;
+	private int dim;
+	private int	count;     	// Number of threads blocked on the Queue
+	private long threads[];  	// Queue of threads, each element contains
 								// the id of the blocked thread.
 	public Fifo_Queue(int n) {
 		dim = n;
